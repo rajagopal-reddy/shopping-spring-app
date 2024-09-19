@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.trainingmug.exceptions.ResourceNotFoundException;
 import com.trainingmug.model.Cart;
@@ -30,9 +31,9 @@ public class CartService implements ICartService {
 		return cartRepository.save(cart);
 	}
 
+	@Transactional
 	@Override
 	public void clearCart(Long id) {
-		// TODO Auto-generated method stub
 		Cart cart = getCart(id);
 		cartIteamRepository.deleteAllByCartId(id);
 		cart.getItems().clear();
@@ -53,5 +54,11 @@ public class CartService implements ICartService {
 		Long newCartId = cartIdGenerator.incrementAndGet();
 		newCart.setId(newCartId);
 		return cartRepository.save(newCart).getId();
+	}
+
+	@Override
+	public Cart getCartByUserId(Long userId) {
+		// TODO Auto-generated method stub
+		return cartRepository.findByUserId(userId);
 	}
 }
