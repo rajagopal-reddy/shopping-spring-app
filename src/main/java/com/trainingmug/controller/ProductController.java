@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.trainingmug.dto.ProductDto;
+import com.trainingmug.exceptions.AlreadyExistsExceptoin;
 import com.trainingmug.exceptions.ResourceNotFoundException;
 import com.trainingmug.model.Product;
 import com.trainingmug.request.AddProductRequest;
@@ -59,9 +60,9 @@ public class ProductController {
 		try {
 			Product theProduct = productService.addProduct(product);
 			return ResponseEntity.ok(new ApiResponse("Add product success !", theProduct));
-		} catch ( Exception e) {
+		} catch ( AlreadyExistsExceptoin e) {
 			// TODO: handle exception
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+			return ResponseEntity.status(HttpStatus.CONFLICT)
 					.body(new ApiResponse(e.getMessage(), null));
 		}
 		

@@ -1,12 +1,14 @@
 package com.trainingmug.service.order;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import com.trainingmug.dto.OrderDto;
 import com.trainingmug.enums.OrderStatus;
 import com.trainingmug.exceptions.ResourceNotFoundException;
 import com.trainingmug.model.Cart;
@@ -26,6 +28,7 @@ public class OrderService implements IOrderService {
 	private final OrderRepository orderRepository;
 	private final ProductRepository productRepository;
 	private final ICartService cartService;
+	private final ModelMapper modelMapper;
 
 	@Override
 	public Order placeOrder(Long userId) {
@@ -45,15 +48,11 @@ public class OrderService implements IOrderService {
 		Order order = new Order();
 		order.setUser(cart.getUser());
 		order.setOrderStatus(OrderStatus.PENDING);
-		order.setOrderDate(LocalDate.now());
+		order.setOrderDate(LocalDateTime.now());
 		return order;
 	
 	}
-	
-	
-	
-	
-	
+		
 	private List<OrderItem> createOrderItems(Order order, Cart cart){
 		return cart.getItems()
 				.stream()
@@ -70,12 +69,7 @@ public class OrderService implements IOrderService {
 				})
 				.toList();
 	}
-	
-	
-	
-	
-	
-	
+		
 	private BigDecimal calculateTotalAmount(List<OrderItem> orderItemList) {
 		return orderItemList.stream()
 				.map(item -> item.getPrice()
@@ -83,27 +77,26 @@ public class OrderService implements IOrderService {
 				.reduce(BigDecimal.ZERO, BigDecimal :: add);
 	}
 	
-	
-	
-	
-
 	@Override
-	public Order getOrder(Long orderId) {
+	public OrderDto getOrder(Long orderId) {
 		// TODO Auto-generated method stub
 		return orderRepository.findById(orderId)
-				.orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+				.map(this :: convertToDto)
+				.orElseThrow(() -> new ResourceNotFoundException("Order not found !"));
 	}
 	
 	@Override
-	public List<Order> getUserOrder(Long userId){
-		return orderRepository.findByUserId(userId);
+	public List<OrderDto> getUserOrder(Long userId){
+		List<Order> orders = orderRepository.findByUserId(userId);
+		return orders.stream()
+				.map(this :: convertToDto)
+				.toList();
 		
 	}
 	
-	
-	
-	
-	
-	
-	
+	@Override
+	public OrderDto convertToDto (Order order) {
+		return modelMapper.map(order, OrderDto.class);
+	}
+		
 }

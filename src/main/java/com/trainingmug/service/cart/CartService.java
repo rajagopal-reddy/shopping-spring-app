@@ -1,6 +1,7 @@
 package com.trainingmug.service.cart;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.stereotype.Service;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.trainingmug.exceptions.ResourceNotFoundException;
 import com.trainingmug.model.Cart;
+import com.trainingmug.model.User;
 import com.trainingmug.repository.CartIteamRepository;
 import com.trainingmug.repository.CartRepository;
 
@@ -49,11 +51,13 @@ public class CartService implements ICartService {
 	}
 
 	@Override
-	public Long initializeNewCart() {
-		Cart newCart =new Cart();
-		Long newCartId = cartIdGenerator.incrementAndGet();
-		newCart.setId(newCartId);
-		return cartRepository.save(newCart).getId();
+	public Cart initializeNewCart(User user) {
+		return Optional.ofNullable(getCartByUserId(user.getId()))
+				.orElseGet(() -> {
+					Cart cart = new Cart();
+					cart.setUser(user);
+					return cartRepository.save(cart);
+				});
 	}
 
 	@Override

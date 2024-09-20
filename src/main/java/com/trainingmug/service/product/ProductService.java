@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.trainingmug.dto.ImageDto;
 import com.trainingmug.dto.ProductDto;
+import com.trainingmug.exceptions.AlreadyExistsExceptoin;
 import com.trainingmug.exceptions.ResourceNotFoundException;
 import com.trainingmug.model.Category;
 import com.trainingmug.model.Image;
@@ -31,6 +32,10 @@ public class ProductService implements IProductService {
 
     @Override
     public Product addProduct(AddProductRequest request) {
+    	
+    	if (productExists(request.getName(), request.getBrand())) {
+			throw new AlreadyExistsExceptoin(request.getBrand()+""+request.getName()+" already exists, you can update this product instead!" );
+		}
         Category category = Optional.ofNullable(categoryRepository.findByName(request.getCategory().getName()))
                 .orElseGet(() -> {
                     Category newCategory = new Category(request.getCategory().getName());
@@ -39,6 +44,10 @@ public class ProductService implements IProductService {
         
         request.setCategory(category);
         return productRepository.save(createProduct(request, category));
+    }
+    
+    private boolean productExists(String name, String brand) {
+    	return productRepository.existsByNameAndBrand(name, brand);
     }
 
     private Product createProduct(AddProductRequest request, Category category) {
